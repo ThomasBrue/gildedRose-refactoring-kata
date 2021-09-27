@@ -7,7 +7,10 @@ public class GildedRose {
     private static final String BACKSTAGE = "Backstage passes to a TAFKAL80ETC concert";
     private Item[] items;
 
+    AdjustQuality adjustQuality = new AdjustQuality();
+
     public GildedRose(Item... items) {
+        // tb.abc = 5;
         this.items = items;
     }
 
@@ -19,53 +22,54 @@ public class GildedRose {
 
     private void updateItemQuality(Item item) {
         if (!item.name.equals(BRIE) && !item.name.equals(BACKSTAGE)) {
-            if (item.quality > 0) {
-                if (!item.name.equals(SULFURAS)) {
-                    item.quality = item.quality - 1;
-                }
-            }
+            notIncreaseSulfuras(item);
         } else {
-            if (item.quality < 50) {
-                item.quality = item.quality + 1;
-
-                if (item.name.equals(BACKSTAGE)) {
-                    if (item.sellIn < 11) {
-                        if (item.quality < 50) {
-                            item.quality = item.quality + 1;
-                        }
-                    }
-
-                    if (item.sellIn < 6) {
-                        if (item.quality < 50) {
-                            item.quality = item.quality + 1;
-                        }
-                    }
-                }
-            }
+            adjustItemQualityIfInRange(item, 1);
+            adjustBackstage(item);
         }
-
         if (!item.name.equals(SULFURAS)) {
             item.sellIn = item.sellIn - 1;
         }
-
         if (item.sellIn < 0) {
-            if (!item.name.equals(BRIE)) {
-                if (!item.name.equals(BACKSTAGE)) {
-                    if (item.quality > 0) {
-                        if (!item.name.equals(SULFURAS)) {
-                            item.quality = item.quality - 1;
-                        }
-                    }
-                } else {
-                    item.quality = item.quality - item.quality;
-                }
-            } else {
-                if (item.quality < 50) {
-                    item.quality = item.quality + 1;
-                }
-            }
+            itemOverdue(item);
         }
     }
+
+    private void notIncreaseSulfuras(Item item) {
+        if (!item.name.equals(SULFURAS)) {
+            adjustItemQualityIfInRange(item, -1);
+        }
+    }
+
+    private void adjustBackstage(Item item) {
+        if (item.sellIn < 11 && item.name.equals(BACKSTAGE)) {
+            adjustItemQualityIfInRange(item, 1);
+        }
+        if (item.sellIn < 6 && item.name.equals(BACKSTAGE)) {
+            adjustItemQualityIfInRange(item, 1);
+        }
+    }
+
+    private void itemOverdue(Item item) {
+        if (!item.name.equals(BRIE) && !item.name.equals(BACKSTAGE) && !item.name.equals(SULFURAS)) {
+            adjustItemQualityIfInRange(item, -1);
+        }
+        if (item.name.equals(BRIE)) {
+            adjustItemQualityIfInRange(item, 1);
+        }
+        if (item.name.equals(BACKSTAGE)) {
+            item.quality = item.quality - item.quality;
+        }
+    }
+
+    private void adjustItemQualityIfInRange(Item item, int adjNum) {
+        int newItemQuality = item.quality + adjNum;
+        if (newItemQuality <= 50 && newItemQuality >= 0) {
+            item.quality = newItemQuality;
+        }
+    }
+
+    // --------------------------------------------------------------------------------------------
 
     public Item[] getItems() {
         return items;
